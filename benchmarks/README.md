@@ -13,19 +13,19 @@ pip install -e '.[dev]'
 Smoke the benchmark code without timing:
 
 ```bash
-pytest -q benchmarks --benchmark-disable --no-cov
+pytest -q benchmarks/bench_tasks.py --benchmark-disable --no-cov
 ```
 
 Run timed benchmarks:
 
 ```bash
-pytest benchmarks -q --benchmark-only --no-cov
+pytest benchmarks/bench_tasks.py -q --benchmark-only --no-cov
 ```
 
 For machine-readable comparison data:
 
 ```bash
-pytest benchmarks -q --benchmark-only --no-cov --benchmark-json=benchmark.json
+pytest benchmarks/bench_tasks.py -q --benchmark-only --no-cov --benchmark-json=benchmark.json
 ```
 
 ## Current microbenchmarks
