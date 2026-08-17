@@ -214,12 +214,13 @@ make verify
 ```
 
 That target also runs the offline public-snapshot hygiene check in `scripts/check_public_snapshot.py`.
+A required CI check additionally scans reachable Git history and commit metadata for blocked credential artifacts, secret-shaped values, and non-synthetic email addresses without printing matched values.
 Repeat `make verify` on Python 3.10, 3.11, 3.12, and 3.13 before claiming the full interpreter matrix.
 
 Run real microbenchmarks:
 
 ```bash
-pytest benchmarks -q --benchmark-only --no-cov
+pytest benchmarks/bench_tasks.py -q --benchmark-only --no-cov
 ```
 
 The benchmark suite measures the current safety-policy, trigger-matching, intent-recognition, and sequence-inspection paths. It intentionally avoids publishing performance claims without reproducible measurements.

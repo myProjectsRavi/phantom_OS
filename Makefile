@@ -27,13 +27,13 @@ coverage:
 	PYTHONPATH=src $(PYTHON) -m pytest -q --cov=phantom --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=95
 
 benchmark:
-	PYTHONPATH=src $(PYTHON) -m pytest benchmarks -q --benchmark-only --no-cov
+	PYTHONPATH=src $(PYTHON) -m pytest benchmarks/bench_tasks.py -q --benchmark-only --no-cov
 
 benchmark-smoke:
-	PYTHONPATH=src $(PYTHON) -m pytest benchmarks -q --benchmark-disable --no-cov
+	PYTHONPATH=src $(PYTHON) -m pytest benchmarks/bench_tasks.py -q --benchmark-disable --no-cov
 
 security:
-	$(PYTHON) -m bandit -r src/phantom/ -ll -ii -x '*/tests/*'
+	$(PYTHON) -m bandit -r src/phantom/ scripts/ -ll -ii -x '*/tests/*'
 	$(PYTHON) -m pip_audit --progress-spinner off
 
 public-safety:

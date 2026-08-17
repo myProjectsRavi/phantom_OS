@@ -11,7 +11,27 @@ permissions:
   contents: read
 
 jobs:
+  history-gate:
+    name: Full-history secret and privacy gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full reachable history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch preserved pull request refs
+        run: |
+          git fetch --no-tags --force origin \
+            '+refs/pull/*/head:refs/remotes/pull/*/head' \
+            '+refs/pull/*/merge:refs/remotes/pull/*/merge'
+
+      - name: Scan Git history without printing matched values
+        run: python scripts/check_public_history.py
+
   unit-tests:
+    needs: history-gate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,6 +40,8 @@ jobs:
     steps:
       - name: Checkout PhantomOS
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -83,6 +105,7 @@ jobs:
           PY
 
   wheel-smoke:
+    needs: history-gate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -91,6 +114,8 @@ jobs:
     steps:
       - name: Checkout PhantomOS
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -121,6 +146,8 @@ jobs:
     steps:
       - name: Checkout PhantomOS
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -134,7 +161,7 @@ jobs:
           pip install -e '.[dev]'
 
       - name: Bandit SAST scan
-        run: bandit -r src/phantom/ -ll -ii -x "*/tests/*"
+        run: bandit -r src/phantom/ scripts/ -ll -ii -x "*/tests/*"
 
       - name: Pip audit
         run: pip-audit --progress-spinner off
