@@ -1,0 +1,18 @@
+# PhantomOS desktop automation requires host OS accessibility APIs.
+# This compose file is intentionally a one-shot package/configuration smoke check,
+# not a production daemon deployment and not a REST service.
+
+services:
+  phantom-package-smoke:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: phantomos:dev
+    command: ["doctor"]
+    restart: "no"
+    environment:
+      PHANTOM_AUTO_APPROVE: "false"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /root/.phantom

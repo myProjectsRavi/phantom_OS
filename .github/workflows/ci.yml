@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout PhantomOS
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+
+      - name: Public snapshot safety gate
+        run: python scripts/check_public_snapshot.py
+
+      - name: Compile check
+        run: python -m compileall -q src tests scripts benchmarks
+
+      - name: Lint
+        run: PYTHONPATH=src python -m ruff check src tests scripts benchmarks
+
+      - name: Format check
+        run: PYTHONPATH=src python -m ruff format --check src tests scripts benchmarks
+
+      - name: Type check
+        run: PYTHONPATH=src python -m mypy --ignore-missing-imports src/phantom
+
+      - name: Run tests with coverage gate
+        run: pytest -q --cov=phantom --cov-report=xml --cov-report=term-missing --cov-fail-under=95
+
+      - name: Benchmark harness smoke
+        run: pytest -q benchmarks --benchmark-disable --no-cov
+
+      - name: Enforce intent and pattern module floors
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import xml.etree.ElementTree as ET
+
+          required = {
+              "src/phantom/intent/recognizer.py": 0.80,
+              "src/phantom/intent/rules.py": 0.80,
+              "src/phantom/intent/sequences.py": 0.80,
+              "src/phantom/patterns/recorder.py": 0.80,
+          }
+          tree = ET.parse("coverage.xml")
+          rates = {
+              node.attrib.get("filename", ""): float(node.attrib.get("line-rate", "0"))
+              for node in tree.findall(".//class")
+          }
+          failures = []
+          for filename, floor in required.items():
+              rate = rates.get(filename)
+              if rate is None:
+                  failures.append(f"{filename}: missing from coverage.xml")
+              elif rate < floor:
+                  failures.append(f"{filename}: {rate * 100:.1f}% < {floor * 100:.1f}%")
+          if failures:
+              raise SystemExit("Coverage floors failed:\n" + "\n".join(failures))
+          PY
+
+  wheel-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout PhantomOS
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+
+      - name: Install wheel in clean environment
+        shell: bash
+        run: |
+          python -m venv /tmp/phantom-wheel
+          /tmp/phantom-wheel/bin/python -m pip install --upgrade pip
+          /tmp/phantom-wheel/bin/pip install dist/*.whl
+          /tmp/phantom-wheel/bin/phantom --help
+          /tmp/phantom-wheel/bin/python - <<'PY'
+          from phantom.config import PhantomConfig
+          print(PhantomConfig())
+          PY
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout PhantomOS
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package and audit tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+
+      - name: Bandit SAST scan
+        run: bandit -r src/phantom/ -ll -ii -x "*/tests/*"
+
+      - name: Pip audit
+        run: pip-audit --progress-spinner off

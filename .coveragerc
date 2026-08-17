@@ -1,0 +1,18 @@
+[run]
+source = src/phantom
+branch = True
+omit =
+    */tests/*
+    */__pycache__/*
+    */site-packages/*
+
+[report]
+fail_under = 95
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod

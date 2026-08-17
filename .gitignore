@@ -1,0 +1,91 @@
+# OS / editor metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python bytecode / caches / test output
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+.verify-wheel-venv/
+
+# Build / package artifacts
+dist/
+build/
+*.egg-info/
+*.whl
+
+# Local secrets / credentials
+.env
+.env.*
+!.env.example
+.netrc
+.npmrc
+.pypirc
+.aws/
+.kube/
+.config/gcloud/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.ovpn
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+credentials*.json
+client_secret*.json
+service-account*.json
+secrets.*
+*.secret
+
+# PhantomOS local runtime state
+.phantom/
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Backups / dumps / temporary files
+*.bak
+*.backup
+*.dump
+*.sql
+*.snapshot
+*~
+tmp/
+temp/
+
+# Local coding-agent / worktree metadata
+.claude/
+.cursor/
+.codex/
+.gemini/
+.aider*
+
+# Internal design/review artifacts
+Docs/*.resolved
+Docs/UDEO_REVIEW_REQUEST.md
+Docs/V0_1_COMPLETION_CHECKLIST.md

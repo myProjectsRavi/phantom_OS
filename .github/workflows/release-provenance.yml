@@ -1,0 +1,63 @@
+name: Release provenance
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-release-artifacts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout PhantomOS
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip build
+          pip install -e '.[dev]'
+
+      - name: Verify release source
+        run: |
+          pytest -q
+          PYTHONPATH=src python -m ruff check src tests scripts benchmarks
+          PYTHONPATH=src python -m ruff format --check src tests scripts benchmarks
+          PYTHONPATH=src python -m mypy --ignore-missing-imports src/phantom
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Generate SHA256 checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+
+      - name: Generate GitHub build provenance attestation
+        if: ${{ github.event.repository.private == false }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+      - name: Upload release build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: phantomOS-${{ github.ref_name }}
+          path: |
+            dist/*
+          if-no-files-found: error

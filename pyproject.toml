@@ -1,0 +1,115 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rtnlabs-phantomos"
+version = "0.1.0"
+description = "Local-first desktop automation runtime with explicit safety controls"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "PhantomOS Contributors"}]
+keywords = ["ai", "agent", "automation", "local-first", "phantom", "screen-aware", "ollama", "desktop"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "click>=8.0",
+    "rich>=12.0",
+    "mss>=9.0",
+    "numpy>=1.24",
+    "Pillow>=10.0",
+    "tomli>=2.0; python_version < '3.11'",
+    "tomli-w>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/myProjectsRavi/phantom_OS"
+Repository = "https://github.com/myProjectsRavi/phantom_OS"
+Documentation = "https://github.com/myProjectsRavi/phantom_OS/tree/main/Docs"
+Issues = "https://github.com/myProjectsRavi/phantom_OS/issues"
+
+[project.optional-dependencies]
+ocr = ["pytesseract>=0.3"]
+input = ["pynput>=1.7", "pyautogui>=0.9"]
+memory = ["neurovault>=0.3.2; python_version >= '3.11'"]
+all = ["rtnlabs-phantomos[ocr,input,memory]"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=4.0",
+    "pytest-benchmark>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "bandit>=1.7",
+    "pip-audit>=2.6",
+]
+
+[project.scripts]
+phantom = "phantom.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/phantom"]
+include = ["src/phantom/py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = [
+  "--cov=phantom",
+  "--cov-report=xml",
+  "--cov-report=term-missing",
+  "--cov-fail-under=95",
+  "--strict-markers",
+  "-v",
+]
+markers = [
+  "unit: Unit tests",
+  "integration: Integration tests",
+  "security: Security tests",
+  "slow: Slow tests",
+  "benchmark: Performance benchmarks",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/phantom"]
+omit = [
+  "*/tests/*",
+  "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]
+fail_under = 95
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests", "scripts", "benchmarks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+show_error_codes = true
