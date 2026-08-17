@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Optional
 
@@ -34,7 +35,7 @@ class OllamaProvider(LLMProvider):
         timeout_connect: float = 5.0,
         timeout_read: float = 30.0,
     ):
-        self._host = host.rstrip("/")
+        self._host = self._validate_http_url(host.rstrip("/"))
         self._model_pref = model
         self._timeout_connect = timeout_connect
         self._timeout_read = timeout_read
@@ -126,19 +127,37 @@ class OllamaProvider(LLMProvider):
         return data.get("embedding", [])
 
     @staticmethod
+    def _validate_http_url(url: str) -> str:
+        """Allow only explicit HTTP(S) network URLs for LLM transport."""
+        try:
+            parsed = urllib.parse.urlsplit(url)
+            _ = parsed.port
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Invalid LLM endpoint URL") from exc
+        if parsed.scheme.lower() not in {"http", "https"} or not parsed.hostname:
+            raise ValueError("LLM endpoint must use http or https")
+        if parsed.username is not None or parsed.password is not None:
+            raise ValueError("Credentials are not allowed in LLM endpoint URLs")
+        return url
+
+    @staticmethod
     def _http_get(url: str, timeout: float) -> dict:
-        req = urllib.request.Request(url)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        safe_url = OllamaProvider._validate_http_url(url)
+        req = urllib.request.Request(safe_url)
+        # URL is constrained above to an HTTP(S) network endpoint.
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             return json.loads(resp.read().decode())
 
     @staticmethod
     def _http_post(url: str, data: dict, timeout: float) -> dict:
+        safe_url = OllamaProvider._validate_http_url(url)
         body = json.dumps(data).encode()
         req = urllib.request.Request(
-            url,
+            safe_url,
             data=body,
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        # URL is constrained above to an HTTP(S) network endpoint.
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             return json.loads(resp.read().decode())
