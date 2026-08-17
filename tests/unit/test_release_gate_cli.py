@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import builtins
 import shutil
-import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -21,7 +20,11 @@ def test_agent_factory_installs_interactive_approval(monkeypatch):
     safety = SimpleNamespace(_approval_callback=None)
     fake_agent = SimpleNamespace(_safety=safety)
     monkeypatch.setattr("phantom.agent.PhantomAgent.open", lambda: fake_agent)
-    monkeypatch.setattr(cli.click, "confirm", lambda prompt, default=False: request_seen.append((prompt, default)) or True)
+    monkeypatch.setattr(
+        cli.click,
+        "confirm",
+        lambda prompt, default=False: request_seen.append((prompt, default)) or True,
+    )
 
     agent = cli._agent()
     request = SimpleNamespace(type=SimpleNamespace(value="wait"), source="unit")
@@ -32,10 +35,14 @@ def test_agent_factory_installs_interactive_approval(monkeypatch):
 
 
 def test_daemon_helper_success_and_failures(monkeypatch):
-    monkeypatch.setattr(cli, "send_command", lambda command, **payload: {"ok": True, "command": command, **payload})
+    monkeypatch.setattr(
+        cli, "send_command", lambda command, **payload: {"ok": True, "command": command, **payload}
+    )
     assert cli._daemon("status")["command"] == "status"
 
-    monkeypatch.setattr(cli, "send_command", lambda *_args, **_kwargs: {"ok": False, "error": "bad"})
+    monkeypatch.setattr(
+        cli, "send_command", lambda *_args, **_kwargs: {"ok": False, "error": "bad"}
+    )
     with pytest.raises(cli.click.ClickException, match="bad"):
         cli._daemon("status")
 

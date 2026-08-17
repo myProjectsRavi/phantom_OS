@@ -7,7 +7,6 @@ from types import SimpleNamespace
 
 import pytest
 
-import phantom.integrations.local_llm_bridge as bridge_module
 import phantom.llm as llm_package
 import phantom.llm.router as router
 from phantom.config import PhantomConfig
@@ -191,8 +190,14 @@ def test_safety_sequence_invalid_shapes_and_custom_blocklists(tmp_path):
     )
     policy.trust_level = TrustLevel.AUTO_EXECUTE
 
-    assert policy.allow(ActionRequest(type=PhantomActionType.SEQUENCE, params={"steps": "bad"})) is False
-    assert policy.allow(ActionRequest(type=PhantomActionType.SEQUENCE, params={"steps": ["bad"]})) is False
+    assert (
+        policy.allow(ActionRequest(type=PhantomActionType.SEQUENCE, params={"steps": "bad"}))
+        is False
+    )
+    assert (
+        policy.allow(ActionRequest(type=PhantomActionType.SEQUENCE, params={"steps": ["bad"]}))
+        is False
+    )
     assert (
         policy.allow(
             ActionRequest(
@@ -202,10 +207,17 @@ def test_safety_sequence_invalid_shapes_and_custom_blocklists(tmp_path):
         )
         is False
     )
-    assert policy.allow(ActionRequest(type=PhantomActionType.APP_ACTIVATE, params={"app": "SecretApp"})) is False
     assert (
         policy.allow(
-            ActionRequest(type=PhantomActionType.FILE_OPEN, params={"path": str(tmp_path / "private")})
+            ActionRequest(type=PhantomActionType.APP_ACTIVATE, params={"app": "SecretApp"})
+        )
+        is False
+    )
+    assert (
+        policy.allow(
+            ActionRequest(
+                type=PhantomActionType.FILE_OPEN, params={"path": str(tmp_path / "private")}
+            )
         )
         is False
     )

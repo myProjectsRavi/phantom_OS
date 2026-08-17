@@ -63,7 +63,9 @@ def test_executor_notification_platform_branches(monkeypatch):
     )
 
     monkeypatch.setattr(executor_module.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(executor_module, "notification_script", lambda title, body: f"{title}:{body}")
+    monkeypatch.setattr(
+        executor_module, "notification_script", lambda title, body: f"{title}:{body}"
+    )
     monkeypatch.setattr(
         executor_module,
         "run_osascript",

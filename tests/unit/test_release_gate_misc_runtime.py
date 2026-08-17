@@ -7,7 +7,6 @@ from types import SimpleNamespace
 import numpy as np
 
 import phantom.automation.recipes as recipes_module
-import phantom.events as events_module
 import phantom.integrations.neurovault_bridge as neuro_module
 import phantom.perception.engine as perception_module
 from phantom.automation.recipes import RecipeLibrary
@@ -99,14 +98,19 @@ def test_perception_full_optional_pipeline_and_typing(monkeypatch):
 
     engine.set_mode(CaptureMode.IDLE)
     assert engine._mode_seen == CaptureMode.IDLE
-    assert engine._detect_typing(
-        PerceptionFrame(text_content={"x": "short"}),
-        PerceptionFrame(text_content={"x": "much longer previous text"}),
-    ) is False
+    assert (
+        engine._detect_typing(
+            PerceptionFrame(text_content={"x": "short"}),
+            PerceptionFrame(text_content={"x": "much longer previous text"}),
+        )
+        is False
+    )
 
 
 def test_perception_initial_frame_interval_before_initialization():
-    engine = PerceptionEngine(SimpleNamespace(capture_fps=5.0, ocr_enabled=False, element_detection=False))
+    engine = PerceptionEngine(
+        SimpleNamespace(capture_fps=5.0, ocr_enabled=False, element_detection=False)
+    )
     assert engine.frame_interval == 0.2
 
 
@@ -138,7 +142,9 @@ max_retries = 3
     )
     (recipe_dir / "bad.toml").write_text("[")
     warnings = []
-    monkeypatch.setattr(recipes_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args))
+    monkeypatch.setattr(
+        recipes_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args)
+    )
 
     library = RecipeLibrary(str(recipe_dir))
     library.load_from_disk()
@@ -218,7 +224,9 @@ def test_neurovault_init_success_via_init_and_final_failure(monkeypatch):
 
     warnings = []
     monkeypatch.setattr(neuro_module, "NeurovaultEngine", _Broken, raising=False)
-    monkeypatch.setattr(neuro_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args))
+    monkeypatch.setattr(
+        neuro_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args)
+    )
     broken = NeurovaultBridge("broken")
     assert broken.available is False
     assert warnings
@@ -227,7 +235,10 @@ def test_neurovault_init_success_via_init_and_final_failure(monkeypatch):
 def test_neurovault_enrich_ignores_empty_memories(monkeypatch):
     class _Vault:
         def recall(self, **_kwargs):
-            return [SimpleNamespace(memory=SimpleNamespace(content="")), SimpleNamespace(content="known")]
+            return [
+                SimpleNamespace(memory=SimpleNamespace(content="")),
+                SimpleNamespace(content="known"),
+            ]
 
     bridge = object.__new__(NeurovaultBridge)
     bridge._vault_name = "demo"

@@ -44,7 +44,9 @@ def test_class_constructors_and_empty_state(tmp_path, monkeypatch):
         local_llm_helpers_enabled=False,
         neurovault_enabled=False,
     )
-    monkeypatch.setattr(agent_module.PhantomConfig, "load", classmethod(lambda cls, _path=None: config))
+    monkeypatch.setattr(
+        agent_module.PhantomConfig, "load", classmethod(lambda cls, _path=None: config)
+    )
 
     from_init = PhantomAgent.init(tmp_path / "config.toml")
     from_open = PhantomAgent.open()
@@ -155,7 +157,9 @@ def test_pattern_loader_invalid_payload_and_save_failure_are_nonfatal(tmp_path, 
 
     agent._patterns = {"x": LearnedPattern(signature="x")}
     warnings = []
-    monkeypatch.setattr(agent_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args))
+    monkeypatch.setattr(
+        agent_module.logger, "warning", lambda *args, **_kwargs: warnings.append(args)
+    )
     monkeypatch.setattr(
         agent_module.tempfile,
         "mkstemp",

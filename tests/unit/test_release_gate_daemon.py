@@ -7,8 +7,6 @@ import stat
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 import phantom.daemon as daemon_module
 from phantom.daemon import PhantomDaemon
 from phantom.models import (
