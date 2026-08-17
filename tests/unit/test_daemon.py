@@ -24,7 +24,7 @@ def test_run_starts_and_stops_agent(monkeypatch):
     monkeypatch.setattr(daemon, "_cleanup_pid", lambda: events.append("cleanup_pid"))
     monkeypatch.setattr(daemon, "_cleanup_control_socket", lambda: events.append("cleanup_socket"))
     monkeypatch.setattr("phantom.daemon.signal.signal", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("phantom.daemon.asyncio.run", lambda _coro: None)
+    monkeypatch.setattr("phantom.daemon.asyncio.run", lambda coro: coro.close())
     daemon.run()
     assert events == ["start", "write_pid", "stop", "cleanup_socket", "cleanup_pid"]
 
