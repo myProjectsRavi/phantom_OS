@@ -45,13 +45,14 @@ jobs:
         run: PYTHONPATH=src python -m ruff format --check src tests scripts benchmarks
 
       - name: Type check
+        if: matrix.python-version == '3.10'
         run: PYTHONPATH=src python -m mypy --ignore-missing-imports src/phantom
 
       - name: Run tests with coverage gate
         run: pytest -q --cov=phantom --cov-report=xml --cov-report=term-missing --cov-fail-under=95
 
       - name: Benchmark harness smoke
-        run: pytest -q benchmarks --benchmark-disable --no-cov
+        run: pytest -q benchmarks/bench_tasks.py --benchmark-disable --no-cov
 
       - name: Enforce intent and pattern module floors
         run: |

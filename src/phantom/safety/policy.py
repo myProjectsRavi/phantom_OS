@@ -26,6 +26,7 @@ class SafetyPolicy:
     )
     BLOCKED_PATHS = ["~/.ssh/", "~/.aws/", "~/.gnupg/", "/etc/", "/System/"]
     BLOCKED_COMMANDS = ["rm -rf", "sudo", "chmod 777", "mkfs", "dd if=", "curl | sh", "wget | sh"]
+    SHELL_CONTROL_TOKENS = (";", "|", "&", "<", ">", "`", "$(", "${")
 
     def __init__(
         self,
@@ -257,6 +258,8 @@ class SafetyPolicy:
         if any(blocked.lower() in command_text for blocked in self.blocked_commands):
             return False
         if request.type == PhantomActionType.RUN_COMMAND:
+            if self._has_shell_control(command_value):
+                return False
             argv = self._command_argv(command_value)
             if not argv or argv[0] not in self.ALLOWED_COMMANDS:
                 return False
@@ -343,8 +346,15 @@ class SafetyPolicy:
     def _is_blocked_path(self, path: str) -> bool:
         if not path:
             return False
+        normalized = unicodedata.normalize("NFKC", str(path))
         try:
-            candidate = Path(path).expanduser().resolve(strict=False)
+            expanded = Path(normalized).expanduser()
+        except (OSError, RuntimeError, ValueError):
+            return True
+        if ".." in expanded.parts:
+            return True
+        try:
+            candidate = expanded.resolve(strict=False)
         except (OSError, RuntimeError, ValueError):
             return True
         for blocked in self.blocked_paths:
@@ -355,6 +365,22 @@ class SafetyPolicy:
             if candidate == root or root in candidate.parents:
                 return True
         return False
+
+    @classmethod
+    def _has_shell_control(cls, raw: object) -> bool:
+        """Reject shell-control syntax from string commands before argv parsing.
+
+        PHANTOM executes argv with ``shell=False``. Rejecting shell syntax here is
+        nevertheless intentional defense-in-depth: a command accepted by the
+        safety policy must remain safe if execution plumbing changes later, and
+        structured list commands remain available when a literal argument needs
+        characters that would otherwise look like shell syntax.
+        """
+        if not isinstance(raw, str):
+            return False
+        if any(ord(char) < 32 or ord(char) == 127 for char in raw):
+            return True
+        return any(token in raw for token in cls.SHELL_CONTROL_TOKENS)
 
     @staticmethod
     def _command_text(raw: object) -> str:

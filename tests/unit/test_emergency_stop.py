@@ -65,6 +65,7 @@ def test_notification_errors_are_swallowed(monkeypatch):
         "run_osascript",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("osascript unavailable")),
     )
+    monkeypatch.setattr(emergency_module.logger, "warning", lambda *_args, **_kwargs: None)
 
     stop.on_key("escape")
     stop.on_key("escape")
