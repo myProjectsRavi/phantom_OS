@@ -21,6 +21,11 @@ def test_start_command_invokes_daemon(monkeypatch):
 
     fake_daemon_mod.PhantomDaemon = _Daemon
     monkeypatch.setitem(sys.modules, "phantom.daemon", fake_daemon_mod)
+    monkeypatch.setattr(
+        cli,
+        "send_command",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(cli.DaemonUnavailable("stopped")),
+    )
     result = CliRunner().invoke(cli.main, ["start"])
     assert result.exit_code == 0 and started["value"] is True
 
@@ -30,21 +35,6 @@ def test_cli_runtime_commands(monkeypatch):
     approved = {"pattern": None, "emergency": False}
 
     class _Agent:
-        def perceive(self):
-            return SimpleNamespace(
-                app_name="Terminal",
-                window_title="Build",
-                screen_type="terminal",
-                elements=[{"id": "x"}],
-                is_typing=False,
-                idle_seconds=1.5,
-            )
-
-        def current_intent(self):
-            return SimpleNamespace(
-                intent=SimpleNamespace(value="coding"), confidence=0.9, source_app="Terminal"
-            )
-
         def learned_patterns(self):
             return [
                 SimpleNamespace(
@@ -55,27 +45,49 @@ def test_cli_runtime_commands(monkeypatch):
         def approve_pattern(self, pattern_id):
             approved["pattern"] = pattern_id
 
-        def predictions(self):
-            return [
-                SimpleNamespace(
-                    action_type=SimpleNamespace(value="app_activate"),
-                    target_app="Terminal",
-                    confidence=0.77,
-                    expected_in_seconds=12.0,
-                    source="markov",
-                )
-            ]
-
-        def clipboard_history(self):
-            return [{"type": "text", "content": "hello world"}]
-
-        def undo(self):
-            return SimpleNamespace(success=True)
-
-        def emergency_stop(self):
+    def _daemon(command, **payload):
+        del payload
+        responses = {
+            "perceive": {
+                "ok": True,
+                "frame": {
+                    "app_name": "Terminal",
+                    "window_title": "Build",
+                    "screen_type": "terminal",
+                    "elements": [{"id": "x"}],
+                    "is_typing": False,
+                    "idle_seconds": 1.5,
+                },
+            },
+            "intent": {
+                "ok": True,
+                "intent": {"intent": "coding", "confidence": 0.9, "source_app": "Terminal"},
+            },
+            "predictions": {
+                "ok": True,
+                "predictions": [
+                    {
+                        "action_type": "app_activate",
+                        "target_app": "Terminal",
+                        "confidence": 0.77,
+                        "expected_in_seconds": 12.0,
+                        "source": "markov",
+                    }
+                ],
+            },
+            "clipboard_history": {
+                "ok": True,
+                "history": [{"type": "text", "content": "hello world"}],
+            },
+            "undo": {"ok": True, "undone": True},
+            "emergency_stop": {"ok": True},
+        }
+        if command == "emergency_stop":
             approved["emergency"] = True
+        return responses[command]
 
     monkeypatch.setattr(cli, "_agent", lambda: _Agent())
+    monkeypatch.setattr(cli, "_daemon", _daemon)
     for args in (
         ["perceive"],
         ["intent"],
@@ -86,7 +98,8 @@ def test_cli_runtime_commands(monkeypatch):
         ["undo"],
         ["emergency-stop"],
     ):
-        assert runner.invoke(cli.main, args).exit_code == 0
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0, result.output
     assert approved["pattern"] == "p1" and approved["emergency"] is True
 
 
@@ -94,24 +107,18 @@ def test_cli_runtime_empty_states(monkeypatch):
     runner = CliRunner()
 
     class _Agent:
-        def perceive(self):
-            return None
-
-        def current_intent(self):
-            return None
-
         def learned_patterns(self):
             return []
 
-        def predictions(self):
-            return []
-
-        def clipboard_history(self):
-            return []
-
-        def undo(self):
-            return SimpleNamespace(success=False)
-
+    responses = {
+        "perceive": {"ok": True, "frame": None},
+        "intent": {"ok": True, "intent": None},
+        "predictions": {"ok": True, "predictions": []},
+        "clipboard_history": {"ok": True, "history": []},
+        "undo": {"ok": True, "undone": False},
+    }
     monkeypatch.setattr(cli, "_agent", lambda: _Agent())
+    monkeypatch.setattr(cli, "_daemon", lambda command, **_payload: responses[command])
     for args in (["perceive"], ["intent"], ["patterns"], ["predictions"], ["clipboard"], ["undo"]):
-        assert runner.invoke(cli.main, args).exit_code == 0
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0, result.output
