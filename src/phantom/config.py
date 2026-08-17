@@ -95,9 +95,7 @@ class PhantomConfig:
             local_llm_helpers_enabled=bool(integrations.get("local_llm_helpers_enabled", False)),
             neurovault_enabled=bool(integrations.get("neurovault_enabled", False)),
             neurovault_base_dir=str(integrations.get("neurovault_base_dir", "")),
-            recipe_dir=str(
-                integrations.get("recipe_dir", Path.home() / ".phantom" / "recipes")
-            ),
+            recipe_dir=str(integrations.get("recipe_dir", Path.home() / ".phantom" / "recipes")),
             pattern_store=str(
                 integrations.get("pattern_store", Path.home() / ".phantom" / "patterns.json")
             ),

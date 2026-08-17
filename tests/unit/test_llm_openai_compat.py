@@ -35,9 +35,7 @@ class TestOpenAICompatAvailable:
 class TestOpenAICompatListModels:
     @patch("phantom.llm.openai_compat.urllib.request.urlopen")
     def test_returns_model_ids(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "data": [{"id": "model-a"}, {"id": "model-b"}]
-        })
+        mock_open.return_value = _mock_urlopen({"data": [{"id": "model-a"}, {"id": "model-b"}]})
         p = OpenAICompatProvider()
         assert p.list_models() == ["model-a", "model-b"]
 
@@ -46,11 +44,13 @@ class TestOpenAICompatComplete:
     @patch("phantom.llm.openai_compat.urllib.request.urlopen")
     def test_complete_parses_response(self, mock_open):
         # model is set explicitly so list_models is NOT called — only one urlopen
-        mock_open.return_value = _mock_urlopen({
-            "model": "test-model",
-            "choices": [{"message": {"content": "Hi there"}}],
-            "usage": {"prompt_tokens": 8, "completion_tokens": 3},
-        })
+        mock_open.return_value = _mock_urlopen(
+            {
+                "model": "test-model",
+                "choices": [{"message": {"content": "Hi there"}}],
+                "usage": {"prompt_tokens": 8, "completion_tokens": 3},
+            }
+        )
 
         p = OpenAICompatProvider(model="test-model")
         result = asyncio.run(p.complete("Hello"))
@@ -60,9 +60,11 @@ class TestOpenAICompatComplete:
 
     @patch("phantom.llm.openai_compat.urllib.request.urlopen")
     def test_api_key_header_included(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "choices": [{"message": {"content": "ok"}}],
-        })
+        mock_open.return_value = _mock_urlopen(
+            {
+                "choices": [{"message": {"content": "ok"}}],
+            }
+        )
 
         p = OpenAICompatProvider(model="m", api_key="test-api-key-123")
         asyncio.run(p.complete("test"))

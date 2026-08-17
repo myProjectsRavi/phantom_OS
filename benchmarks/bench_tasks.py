@@ -77,12 +77,7 @@ def test_sequence_blocklist_walk_latency(benchmark):
     request = ActionRequest(
         type=PhantomActionType.SEQUENCE,
         source="benchmark",
-        params={
-            "steps": [
-                {"type": "wait", "params": {"seconds": 0}}
-                for _ in range(100)
-            ]
-        },
+        params={"steps": [{"type": "wait", "params": {"seconds": 0}} for _ in range(100)]},
     )
 
     assert benchmark(policy.allow, request) is True

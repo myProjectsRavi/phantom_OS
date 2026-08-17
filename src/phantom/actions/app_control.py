@@ -44,7 +44,9 @@ class AppController:
                 )
             return ActionResult(success=True, action_type=PhantomActionType.URL_OPEN)
         except Exception as exc:
-            return ActionResult(success=False, action_type=PhantomActionType.URL_OPEN, error=str(exc))
+            return ActionResult(
+                success=False, action_type=PhantomActionType.URL_OPEN, error=str(exc)
+            )
 
     def open_file(self, path: str) -> ActionResult:
         try:

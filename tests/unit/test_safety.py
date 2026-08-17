@@ -62,14 +62,18 @@ def test_consecutive_errors_circuit_breaker():
 
 def test_approval_is_denied_by_default():
     policy = SafetyPolicy()
-    request = ActionRequest(type=PhantomActionType.TYPE_TEXT, params={"text": "hi"}, source="recipe")
+    request = ActionRequest(
+        type=PhantomActionType.TYPE_TEXT, params={"text": "hi"}, source="recipe"
+    )
     assert asyncio.run(policy.request_approval(request)) is False
 
 
 def test_approval_env_override(monkeypatch):
     monkeypatch.setenv("PHANTOM_AUTO_APPROVE", "true")
     policy = SafetyPolicy()
-    request = ActionRequest(type=PhantomActionType.TYPE_TEXT, params={"text": "hi"}, source="recipe")
+    request = ActionRequest(
+        type=PhantomActionType.TYPE_TEXT, params={"text": "hi"}, source="recipe"
+    )
     assert asyncio.run(policy.request_approval(request)) is True
 
 

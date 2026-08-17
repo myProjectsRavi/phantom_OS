@@ -29,5 +29,12 @@ class TimePredictor:
         for state, count in sorted(states.items(), key=lambda x: -x[1])[:top_k]:
             parts = state.split("@")
             at = ActionType(parts[0]) if parts[0] in valid_action_values else ActionType.UNKNOWN
-            results.append(PredictedAction(action_type=at, target_app=parts[1] if len(parts) > 1 else "", confidence=count / total, source="time_pattern"))
+            results.append(
+                PredictedAction(
+                    action_type=at,
+                    target_app=parts[1] if len(parts) > 1 else "",
+                    confidence=count / total,
+                    source="time_pattern",
+                )
+            )
         return results

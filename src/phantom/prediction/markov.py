@@ -28,7 +28,11 @@ class MarkovPredictor:
             parts = state.split("@")
             at = ActionType(parts[0]) if parts[0] in valid_action_values else ActionType.UNKNOWN
             app = parts[1] if len(parts) > 1 else ""
-            predictions.append(PredictedAction(action_type=at, target_app=app, confidence=count / total, source="markov"))
+            predictions.append(
+                PredictedAction(
+                    action_type=at, target_app=app, confidence=count / total, source="markov"
+                )
+            )
         return predictions
 
     @staticmethod

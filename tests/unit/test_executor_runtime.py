@@ -95,7 +95,9 @@ def test_execute_records_success_and_failure(monkeypatch):
         lambda request: ActionResult(success=False, action_type=request.type, error="boom"),
     )
     bad = asyncio.run(
-        executor.execute(ActionRequest(type=PhantomActionType.NOTIFICATION, params={"title": "bad"}))
+        executor.execute(
+            ActionRequest(type=PhantomActionType.NOTIFICATION, params={"title": "bad"})
+        )
     )
     assert bad.success is False
     assert safety.error_count == 1
@@ -119,7 +121,9 @@ def test_dispatch_branches_and_helpers(monkeypatch):
         set=lambda value: set_values.append(value),
     )
     executor._app = SimpleNamespace(
-        activate=lambda _app: ActionResult(success=True, action_type=PhantomActionType.APP_ACTIVATE),
+        activate=lambda _app: ActionResult(
+            success=True, action_type=PhantomActionType.APP_ACTIVATE
+        ),
         open_url=lambda _url: ActionResult(success=True, action_type=PhantomActionType.URL_OPEN),
         open_file=lambda _path: ActionResult(success=True, action_type=PhantomActionType.FILE_OPEN),
     )
@@ -154,7 +158,9 @@ def test_dispatch_branches_and_helpers(monkeypatch):
     assert executor._dispatch(
         ActionRequest(type=PhantomActionType.RUN_COMMAND, params={"command": ["echo", "ok"]})
     ).success
-    assert executor._dispatch(ActionRequest(type=PhantomActionType.WAIT, params={"seconds": 0.1})).success
+    assert executor._dispatch(
+        ActionRequest(type=PhantomActionType.WAIT, params={"seconds": 0.1})
+    ).success
     assert executor._dispatch(
         ActionRequest(
             type=PhantomActionType.NOTIFICATION,
@@ -178,8 +184,9 @@ def test_sequence_reenters_execute(monkeypatch):
     monkeypatch.setattr(
         executor,
         "_dispatch",
-        lambda request: seen.append(request.type)
-        or ActionResult(success=True, action_type=request.type),
+        lambda request: (
+            seen.append(request.type) or ActionResult(success=True, action_type=request.type)
+        ),
     )
     result = asyncio.run(
         executor.execute(

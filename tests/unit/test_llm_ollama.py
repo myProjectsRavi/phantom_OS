@@ -42,9 +42,9 @@ class TestOllamaAvailable:
 class TestOllamaListModels:
     @patch("phantom.llm.ollama.urllib.request.urlopen")
     def test_returns_model_names(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "models": [{"name": "qwen2.5:1.5b"}, {"name": "llama3.2:1b"}]
-        })
+        mock_open.return_value = _mock_urlopen(
+            {"models": [{"name": "qwen2.5:1.5b"}, {"name": "llama3.2:1b"}]}
+        )
         p = OllamaProvider()
         models = p.list_models()
         assert models == ["qwen2.5:1.5b", "llama3.2:1b"]
@@ -59,17 +59,15 @@ class TestOllamaListModels:
 class TestOllamaPickModel:
     @patch("phantom.llm.ollama.urllib.request.urlopen")
     def test_prefers_qwen_small(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "models": [{"name": "llama3.2:1b"}, {"name": "qwen2.5:1.5b"}]
-        })
+        mock_open.return_value = _mock_urlopen(
+            {"models": [{"name": "llama3.2:1b"}, {"name": "qwen2.5:1.5b"}]}
+        )
         p = OllamaProvider(model="auto")
         assert p.model == "qwen2.5:1.5b"
 
     @patch("phantom.llm.ollama.urllib.request.urlopen")
     def test_falls_back_to_first_available(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "models": [{"name": "custom-model:latest"}]
-        })
+        mock_open.return_value = _mock_urlopen({"models": [{"name": "custom-model:latest"}]})
         p = OllamaProvider(model="auto")
         assert p.model == "custom-model:latest"
 
@@ -88,12 +86,14 @@ class TestOllamaComplete:
     @patch("phantom.llm.ollama.urllib.request.urlopen")
     def test_complete_parses_response(self, mock_open):
         # model is explicit — only one urlopen call for chat completion
-        mock_open.return_value = _mock_urlopen({
-            "model": "qwen2.5:1.5b",
-            "message": {"content": "Hello world"},
-            "prompt_eval_count": 10,
-            "eval_count": 5,
-        })
+        mock_open.return_value = _mock_urlopen(
+            {
+                "model": "qwen2.5:1.5b",
+                "message": {"content": "Hello world"},
+                "prompt_eval_count": 10,
+                "eval_count": 5,
+            }
+        )
 
         p = OllamaProvider(model="qwen2.5:1.5b")
         result = asyncio.run(p.complete("Say hello", system="Be friendly"))
@@ -105,10 +105,12 @@ class TestOllamaComplete:
 
     @patch("phantom.llm.ollama.urllib.request.urlopen")
     def test_complete_sends_correct_payload(self, mock_open):
-        mock_open.return_value = _mock_urlopen({
-            "model": "test",
-            "message": {"content": "ok"},
-        })
+        mock_open.return_value = _mock_urlopen(
+            {
+                "model": "test",
+                "message": {"content": "ok"},
+            }
+        )
 
         p = OllamaProvider(model="test", host="http://myhost:1234")
         asyncio.run(p.complete("prompt", system="sys", temperature=0.5, max_tokens=512))

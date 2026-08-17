@@ -9,11 +9,43 @@ class AppStateClassifier:
     """Classify application state from app info and screen content."""
 
     APP_SCREENS = {
-        "Code": {"screens": {"editor": ["def ", "class ", "import ", "const ", "function "], "terminal": ["$", ">>>", "❯", "zsh", "bash"], "settings": ["Settings", "Preferences", "Configuration"], "git": ["git ", "commit", "branch", "merge"], "search": ["Search", "Find", "Replace"]}},
-        "Safari": {"screens": {"browsing": [], "search": ["Google", "Search", "Bing"], "reading": [], "video": ["YouTube", "Watch", "Play"]}},
-        "Google Chrome": {"screens": {"browsing": [], "dev_tools": ["Elements", "Console", "Network", "Sources"], "search": ["Google", "Search"]}},
-        "Slack": {"screens": {"messaging": ["#", "Direct Messages", "Threads"], "call": ["Huddle", "Call"]}},
-        "Terminal": {"screens": {"shell": ["$", "❯", "%"], "vim": [":w", ":q", "-- INSERT --", "NORMAL"], "ssh": ["ssh", "Welcome to"]}},
+        "Code": {
+            "screens": {
+                "editor": ["def ", "class ", "import ", "const ", "function "],
+                "terminal": ["$", ">>>", "❯", "zsh", "bash"],
+                "settings": ["Settings", "Preferences", "Configuration"],
+                "git": ["git ", "commit", "branch", "merge"],
+                "search": ["Search", "Find", "Replace"],
+            }
+        },
+        "Safari": {
+            "screens": {
+                "browsing": [],
+                "search": ["Google", "Search", "Bing"],
+                "reading": [],
+                "video": ["YouTube", "Watch", "Play"],
+            }
+        },
+        "Google Chrome": {
+            "screens": {
+                "browsing": [],
+                "dev_tools": ["Elements", "Console", "Network", "Sources"],
+                "search": ["Google", "Search"],
+            }
+        },
+        "Slack": {
+            "screens": {
+                "messaging": ["#", "Direct Messages", "Threads"],
+                "call": ["Huddle", "Call"],
+            }
+        },
+        "Terminal": {
+            "screens": {
+                "shell": ["$", "❯", "%"],
+                "vim": [":w", ":q", "-- INSERT --", "NORMAL"],
+                "ssh": ["ssh", "Welcome to"],
+            }
+        },
     }
 
     def classify(self, app_info: AppInfo, text_content: dict) -> str:

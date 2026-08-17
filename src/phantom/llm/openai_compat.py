@@ -40,9 +40,7 @@ class OpenAICompatProvider(LLMProvider):
 
     def available(self) -> bool:
         try:
-            req = urllib.request.Request(
-                f"{self._base_url}/v1/models", headers=self._headers()
-            )
+            req = urllib.request.Request(f"{self._base_url}/v1/models", headers=self._headers())
             with urllib.request.urlopen(req, timeout=5.0):
                 return True
         except Exception:
@@ -50,9 +48,7 @@ class OpenAICompatProvider(LLMProvider):
 
     def list_models(self) -> list[str]:
         try:
-            req = urllib.request.Request(
-                f"{self._base_url}/v1/models", headers=self._headers()
-            )
+            req = urllib.request.Request(f"{self._base_url}/v1/models", headers=self._headers())
             with urllib.request.urlopen(req, timeout=5.0) as resp:
                 data = json.loads(resp.read().decode())
                 return [m["id"] for m in data.get("data", [])]

@@ -50,11 +50,9 @@ class ClipboardManager:
 
     def search(self, query: str, limit=5):
         needle = query.lower()
-        return [
-            item
-            for item in reversed(self._history)
-            if needle in item["content"].lower()
-        ][:limit]
+        return [item for item in reversed(self._history) if needle in item["content"].lower()][
+            :limit
+        ]
 
     def history(self, limit=20):
         return self._history[-limit:]

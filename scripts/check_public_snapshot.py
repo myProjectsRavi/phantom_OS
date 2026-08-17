@@ -75,7 +75,9 @@ SECRET_PATTERNS = {
     "Stripe live secret": re.compile(r"\bsk_live_[A-Za-z0-9]{16,}\b"),
     "Hugging Face token": re.compile(r"\bhf_[A-Za-z0-9]{20,}\b"),
     "npm access token": re.compile(r"\bnpm_[A-Za-z0-9]{20,}\b"),
-    "JWT-shaped token": re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
+    "JWT-shaped token": re.compile(
+        r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"
+    ),
     "private key header": re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
 }
 

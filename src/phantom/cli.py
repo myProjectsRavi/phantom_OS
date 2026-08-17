@@ -467,7 +467,7 @@ def models():
     console.print(table)
 
 
-DEFAULT_CONFIG = '''[phantom]
+DEFAULT_CONFIG = """[phantom]
 trust_level = "approve_new"
 capture_fps = 1.0
 pattern_threshold = 3
@@ -496,4 +496,4 @@ api_key = ""
 
 [notifications]
 style = "ghost"
-'''
+"""
